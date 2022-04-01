@@ -75,7 +75,9 @@ class _ZefyrComponentState extends State<ZefyrComponent> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+
+        /*Scaffold(
         appBar: AppBar(
           title: const Text("Editor page"),
           actions: <Widget>[
@@ -87,24 +89,28 @@ class _ZefyrComponentState extends State<ZefyrComponent> {
             ),
           ],
         ),
-        body: Center(
+        body:*/
+        Center(
             child: Column(children: <Widget>[
-          (_controller == null)
-              ? const SizedBox.shrink()
-              : ZefyrToolbar.basic(
-                  controller: _controller!,
-                  hideSuperScript: true,
-                  hideSubScript: true,
-                  hideDirection: true,
-                ),
-          (_controller == null)
-              ? const Center(child: CircularProgressIndicator())
-              : ZefyrEditor(
-                  padding: const EdgeInsets.all(16),
-                  controller: _controller!,
-                  focusNode: _focusNode,
-                ),
-        ])));
+      (_controller == null)
+          ? const SizedBox.shrink()
+          : ZefyrToolbar.basic(
+              controller: _controller!,
+              hideSuperScript: true,
+              hideSubScript: true,
+              hideDirection: true,
+            ),
+      (_controller == null)
+          ? const Center(child: CircularProgressIndicator())
+          : ZefyrEditor(
+              padding: const EdgeInsets.all(16),
+              controller: _controller!,
+              focusNode: _focusNode,
+            ),
+    ]
+
+                //)
+                ));
   }
 
   //WE FIRST WRITE SOME VARIABLE THEN WE WRITE SUBSCRIPT AND THEN SUPERSCRIPT
