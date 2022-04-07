@@ -1,5 +1,7 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
+import 'package:tap_canvas/tap_canvas.dart';
+import 'zefyr/zefyr.dart';
 import 'zefyr_component.dart';
 
 //TODO: make image support.
@@ -26,7 +28,7 @@ class MyApp extends StatelessWidget {
           //ThemeData(fontFamily: 'RobotoRegular'),
           ThemeData.dark(),
 
-      home: const MyHomePage(),
+      home: const TapCanvas(child: MyHomePage()),
 
       //const ZefyrComponent(),
     );
@@ -41,23 +43,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TextEditingController controller = TextEditingController();
-  //EquationSpanBuilder? _equationSpanBuilder;
+  //List<ZefyrController> controllerList = [];
+  List<FocusNode> focusList = [];
 
+  List<Widget> widgetList = [];
   @override
   void initState() {
+    //addNewTextField();
+    //TODO: LOAD WIDGETS FROM FILE.
+
     //_equationSpanBuilder = EquationSpanBuilder(controller, context);
 
-    /*
-      //String result = _controller.formatText
-      print(result);
-      if (result.contains('?')) {
-        result = result.replaceAll('?', '');
-        for (String k in greekLettersMap.keys) {
-          //print(greekLettersMap[k]);
-          result = result.replaceAll(k, '${greekLettersMap[k]}');
-        }
-      }*/
     super.initState();
   }
 
@@ -71,14 +67,25 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           //mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Padding(
+            const SizedBox(
+              height: 8,
+            ),
+            //Expanded(child: zefyrListBuilder()),
+            /*const Padding(
               padding: EdgeInsets.all(15.0),
               child: ZefyrComponent(),
+            ),*/
+            Column(
+              children: widgetList,
+            ),
+            const SizedBox(
+              height: 8,
             ),
             const Divider(),
             const SizedBox(
               height: 20,
             ),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -87,6 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 }),
                 newButton('Add new Text', Icons.text_fields, () {
                   print('Add new Text');
+
+                  addNewTextField();
                 }),
                 newButton('Add new Equation', Icons.functions, () {
                   print('Add new equation');
@@ -98,6 +107,65 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+  /*
+  ListView zefyrListBuilder() {
+    print('rebuilding');
+    return ListView.builder(
+        itemBuilder: (BuildContext context, int index) {
+          return widgetList[index];
+          /*
+          ZefyrComponent(
+            controller: controllerList[index],
+            focusNode: focusList[index],
+          );*/
+        },
+        itemCount: widgetList.length);
+    /*
+          return InkWell(
+            onTap: () {
+              print("tapped");
+              focusIndex = index;
+              setState(() {});
+            },
+            child: index == focusIndex
+                ? ZefyrComponent(controller: controllerList[index])
+                : Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.blue,
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(children: <Widget>[
+                      ZefyrComponent(controller: controllerList[index]),
+                      ZefyrToolbar.basic(
+                        //TODO: WRONG
+                        controller: ZefyrController(),
+                        hideSuperScript: true,
+                        hideSubScript: true,
+                        hideDirection: true,
+                      ),
+                    ]),
+                  ),
+          );
+          */
+  }
+  */
+
+  void addNewTextField() {
+    ZefyrController _controller = ZefyrController();
+
+    widgetList.add(ZefyrComponent(
+      controller: _controller,
+    ));
+    /*
+      widgetList.add();*/
+
+    setState(() {
+      //controllerList.add(_controller);
+      //focusList.add(_focusNode);
+    });
+  }
 
   Widget newButton(String tooltip, IconData icon, VoidCallback onPressed) {
     return Ink(
@@ -107,6 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       child: IconButton(
         icon: Badge(
+          toAnimate: false,
           badgeColor: Theme.of(context).buttonTheme.colorScheme!.primary,
           position: BadgePosition.topEnd(top: -15, end: -12),
           badgeContent: Transform.translate(

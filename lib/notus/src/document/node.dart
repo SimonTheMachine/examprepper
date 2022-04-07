@@ -207,13 +207,15 @@ abstract class ContainerNode<T extends Node> extends Node {
   /// original [offset].
   LookupResult lookup(int offset, {bool inclusive = false}) {
     assert(offset >= 0 && offset <= length);
-
-    for (final node in children) {
-      final length = node.length;
-      if (offset < length || (inclusive && offset == length && (node.isLast))) {
-        return LookupResult(node, offset);
+    if (offset >= 0 && offset <= length) {
+      for (final node in children) {
+        final length = node.length;
+        if (offset < length ||
+            (inclusive && offset == length && (node.isLast))) {
+          return LookupResult(node, offset);
+        }
+        offset -= length;
       }
-      offset -= length;
     }
     return LookupResult(null, 0);
   }

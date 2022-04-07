@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:examprepper/zefyr/zefyr.dart';
 import 'package:flutter/material.dart';
+import 'package:tap_canvas/tap_canvas.dart';
 
 import 'big_unicode_data.dart';
 //import 'zefyr/zefyr.dart';
 
 class ZefyrComponent extends StatefulWidget {
-  const ZefyrComponent({Key? key}) : super(key: key);
+  final ZefyrController controller;
+  const ZefyrComponent({Key? key, required this.controller}) : super(key: key);
 
   @override
   _ZefyrComponentState createState() => _ZefyrComponentState();
@@ -16,101 +18,121 @@ class ZefyrComponent extends StatefulWidget {
 
 class _ZefyrComponentState extends State<ZefyrComponent> {
   ZefyrController? _controller;
-  FocusNode? _focusNode;
   int startWordIndex = 0;
   bool justCompiled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode();
-    _loadDocument().then((document) {
-      setState(() {
-        _controller = ZefyrController(document);
-        _controller!.addListener(() {
-          //Superscript and subscript support must be nicer.
-          //fix for initializing.
-          //Fix for edits (deleting and correcting)
-
-          int currentIndex = _controller!.selection.baseOffset;
-          String content = _controller!.document.toPlainText();
-          if (justCompiled) {
-            justCompiled = false;
-            return;
-          }
-
-          if (currentIndex != 0) {
-            if (currentIndex <= startWordIndex) {
-              startWordIndex = currentIndex;
-            } else if (content[currentIndex - 1] == ' ' ||
-                content[currentIndex - 1] == '\n') {
-              String s = content.substring(startWordIndex, currentIndex - 1);
-              if (!(s.contains(' '))) {
-                String replacement = _updateDocument(s);
-                if (replacement != s) {
-                  justCompiled = true;
-                  _controller!
-                      .replaceText(startWordIndex, s.length, replacement);
-
-                  currentIndex = currentIndex + replacement.length - s.length;
-                  justCompiled = true;
-                  _controller!.updateSelection(TextSelection(
-                      baseOffset: currentIndex, extentOffset: currentIndex));
-                }
-              }
-              startWordIndex = currentIndex;
-            }
-          } else {
-            startWordIndex = 0;
-          }
-        });
-      });
-    });
-  }
+  FocusNode? _editorFocusNode;
+  bool _isEditing = true;
+  bool _newFocus = false;
 
   @override
   void dispose() {
+    _controller!.dispose();
     super.dispose();
   }
 
   @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller;
+    _editorFocusNode = FocusNode();
+
+    _controller!.addListener(() {
+      int currentIndex = _controller!.selection.baseOffset;
+
+      if (justCompiled) {
+        justCompiled = false;
+        return;
+      }
+
+      if (currentIndex != 0) {
+        String content = _controller!.document.toPlainText();
+        if (currentIndex <= startWordIndex) {
+          startWordIndex = currentIndex;
+        } else if ((content[currentIndex - 1] == ' ' ||
+            content[currentIndex - 1] == '\n')) {
+          String s = content.substring(startWordIndex, currentIndex - 1);
+          if (!(s.contains(' '))) {
+            String replacement = _updateDocument(s);
+            if (replacement != s) {
+              currentIndex = currentIndex + replacement.length - s.length;
+              justCompiled = true;
+              _controller!.updateSelection(TextSelection(
+                  baseOffset: currentIndex, extentOffset: currentIndex));
+
+              justCompiled = true;
+              _controller!.replaceText(startWordIndex, s.length, replacement);
+            }
+          }
+          startWordIndex = currentIndex;
+        }
+      } else {
+        startWordIndex = 0;
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return
+    if (_newFocus) {
+      _setCursorToEnd();
+      _newFocus = false;
+    }
+    return TapOutsideDetectorWidget(
+        onTappedOutside: () {
+          if (_isEditing) {
+            //print(widget.id.toString() + ': focus lost');
 
-        /*Scaffold(
-        appBar: AppBar(
-          title: const Text("Editor page"),
-          actions: <Widget>[
-            Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: () => _saveDocument(context),
-              ),
-            ),
-          ],
-        ),
-        body:*/
-        Center(
-            child: Column(children: <Widget>[
-      (_controller == null)
-          ? const SizedBox.shrink()
-          : ZefyrToolbar.basic(
-              controller: _controller!,
-              hideSuperScript: true,
-              hideSubScript: true,
-              hideDirection: true,
-            ),
-      (_controller == null)
-          ? const Center(child: CircularProgressIndicator())
-          : ZefyrEditor(
-              padding: const EdgeInsets.all(16),
-              controller: _controller!,
-              focusNode: _focusNode,
-            ),
-    ]
+            setState(() {
+              _isEditing = false;
+            });
+          }
+        },
+        onTappedInside: () {
+          if (!_isEditing) {
+            //_editorFocusNode!.requestFocus();
+            //print(widget.id.toString() + ': focus gained');
 
-                //)
-                ));
+            setState(() {
+              _isEditing = true;
+              _newFocus = true;
+            });
+          }
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: _isEditing
+              ? BoxDecoration(
+                  border: Border.all(
+                    color: Colors.blue,
+                  ),
+                  borderRadius: BorderRadius.circular(10.0),
+                )
+              : null,
+          child: Column(children: <Widget>[
+            (_controller == null)
+                ? const Center(child: CircularProgressIndicator())
+                : ZefyrEditor(
+                    padding: const EdgeInsets.all(16),
+                    controller: _controller!,
+                    focusNode: _editorFocusNode,
+                  ),
+            _isEditing
+                ? ZefyrToolbar.basic(
+                    controller: _controller!,
+                    hideSuperScript: true,
+                    hideSubScript: true,
+                    hideDirection: true,
+                  )
+                : const SizedBox.shrink(),
+          ]),
+        ));
+  }
+
+  //Set cursor to last index in file.
+  void _setCursorToEnd() {
+    _controller!.updateSelection(TextSelection(
+        baseOffset: _controller!.document.toPlainText().length,
+        extentOffset: _controller!.document.toPlainText().length));
   }
 
   //WE FIRST WRITE SOME VARIABLE THEN WE WRITE SUBSCRIPT AND THEN SUPERSCRIPT
@@ -148,7 +170,6 @@ class _ZefyrComponentState extends State<ZefyrComponent> {
       }
     }
 
-    //print('Nonscript: ' + nonScript);
     if (nonScript.isNotEmpty) {
       // Calculates the substring of nonscript.
       String? res = BigUnicodeData.greekLettersMap[nonScript];
@@ -186,33 +207,5 @@ class _ZefyrComponentState extends State<ZefyrComponent> {
 
     //print(greekLettersMap[k]);
     //contents = contents.replaceAll(k, '${greekLettersMap[k]}');
-  }
-
-  Future<NotusDocument> _loadDocument() async {
-    final file = File(Directory.systemTemp.path + "/quick_start.json");
-    if (await file.exists()) {
-      final contents = await file.readAsString();
-      return NotusDocument.fromJson(jsonDecode(contents));
-    }
-    return NotusDocument.fromJson(jsonDecode("[{\"insert\":\"\n\"}]"));
-  }
-
-  void _saveDocument(BuildContext context) {
-    // Notus documents can be easily serialized to JSON by passing to
-    // `jsonEncode` directly
-    if (_controller != null) {
-      String contents = jsonEncode(_controller!.document);
-
-      // For this example we save our document to a temporary file.
-      final file = File(Directory.systemTemp.path + "/quick_start.json");
-      // And show a snack bar on success.
-      file.writeAsString(contents).then((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Saved'),
-          ),
-        );
-      });
-    }
   }
 }
