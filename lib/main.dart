@@ -4,6 +4,7 @@ import 'package:tap_canvas/tap_canvas.dart';
 import 'zefyr/zefyr.dart';
 import 'zefyr_component.dart';
 
+//TODO: make scrollable widget.
 //TODO: make image support.
 //TODO: make equaition support.
 //TODO: DOCUMENTATION.
@@ -75,12 +76,46 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: EdgeInsets.all(15.0),
               child: ZefyrComponent(),
             ),*/
-            Column(
-              children: widgetList,
+            /*
+            CustomScrollView(
+              shrinkWrap: true,
+              slivers: <Widget>[
+                SliverPadding(
+                  padding: const EdgeInsets.all(20.0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(widgetList),
+                  ),
+                ),
+              ],
             ),
+            */
+            /*
+            LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                  child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: constraints.maxHeight - 50,
+                      ),
+                      
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: widgetList,
+                      )));
+            }),
+            */
+            buildListView(),
+
+            /*
+              ))
+              child: SingleChildScrollView(
+                  ),
+            ),
+            */
             const SizedBox(
               height: 8,
             ),
+            const Spacer(),
             const Divider(),
             const SizedBox(
               height: 20,
@@ -102,69 +137,34 @@ class _MyHomePageState extends State<MyHomePage> {
                 }),
               ],
             ),
+            const SizedBox(
+              height: 20,
+            ),
           ],
         ),
       ),
     );
   }
-  /*
-  ListView zefyrListBuilder() {
-    print('rebuilding');
-    return ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
+
+  Widget buildListView() {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 168,
+      child: ListView.builder(
+        itemCount: widgetList.length,
+        itemBuilder: (context, index) {
           return widgetList[index];
-          /*
-          ZefyrComponent(
-            controller: controllerList[index],
-            focusNode: focusList[index],
-          );*/
         },
-        itemCount: widgetList.length);
-    /*
-          return InkWell(
-            onTap: () {
-              print("tapped");
-              focusIndex = index;
-              setState(() {});
-            },
-            child: index == focusIndex
-                ? ZefyrComponent(controller: controllerList[index])
-                : Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.blue,
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(children: <Widget>[
-                      ZefyrComponent(controller: controllerList[index]),
-                      ZefyrToolbar.basic(
-                        //TODO: WRONG
-                        controller: ZefyrController(),
-                        hideSuperScript: true,
-                        hideSubScript: true,
-                        hideDirection: true,
-                      ),
-                    ]),
-                  ),
-          );
-          */
+        shrinkWrap: true,
+      ),
+    );
   }
-  */
 
   void addNewTextField() {
     ZefyrController _controller = ZefyrController();
-
     widgetList.add(ZefyrComponent(
       controller: _controller,
     ));
-    /*
-      widgetList.add();*/
-
-    setState(() {
-      //controllerList.add(_controller);
-      //focusList.add(_focusNode);
-    });
+    setState(() {});
   }
 
   Widget newButton(String tooltip, IconData icon, VoidCallback onPressed) {
