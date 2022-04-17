@@ -1,15 +1,20 @@
+import 'dart:io';
+
 import 'package:badges/badges.dart';
+import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
+import 'package:resizable_widget/resizable_widget.dart';
 import 'package:tap_canvas/tap_canvas.dart';
+import 'package:file_picker/file_picker.dart';
+import 'image_editor.dart';
 import 'zefyr/zefyr.dart';
 import 'zefyr_component.dart';
 
-//TODO: make scrollable widget.
-//TODO: make image support.
 //TODO: make equaition support.
-//TODO: DOCUMENTATION.
 
-//MAKE SMOOTHER SUBSCript and superscript (EDIT: CANT SEEM TO BE POSSIBLE.)
+//TODO: DOWNLOADABILITY
+//TODO: DOCUMENTATION.
 
 void main() {
   runApp(const MyApp());
@@ -66,6 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           //mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const SizedBox(
@@ -104,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       )));
             }),
             */
+            //const SizedBox.shrink(),
             buildListView(),
 
             /*
@@ -126,6 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 newButton('Add new Image', Icons.image, () {
                   print('Add new image');
+
+                  addNewImage();
                 }),
                 newButton('Add new Text', Icons.text_fields, () {
                   print('Add new Text');
@@ -165,6 +174,64 @@ class _MyHomePageState extends State<MyHomePage> {
       controller: _controller,
     ));
     setState(() {});
+  }
+
+  Future<void> addNewImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png'],
+    );
+
+    if (result != null) {
+      File file = File(result.files.single.path.toString());
+      widgetList.add(ResizebleWidget(
+        image: FileImage(file),
+      ));
+      setState(() {});
+      //Image(image: ResizeImage(FileImage(file), width: 300))
+      /*
+
+      img.Image? image = img.decodeImage(file.readAsBytesSync());
+
+      if (image != null) {
+        image = img.copyResize(image, width: 120);
+        print(Directory.current.path);
+        File('thumbnail-test.png').writeAsBytesSync(image.getBytes());
+      }
+
+      if (image != null) {
+        
+
+        /*  
+          SizedBox(
+          height: 400,
+          child: Image.memory(
+            image.getBytes(),
+            //fit: BoxFit.cover,
+          ),
+        ));
+        */
+        setState(() {});
+      }
+      */
+
+      /*
+      path.basename(file.path);
+      widgetList.add(Image.file(file));
+      setState(() {});
+
+      Widget image = ResizebleWidget(
+        image: Image.file(file),
+      );
+      */
+      // widgetList.add(image);
+
+      // setState(() {});
+    } else {
+      // User canceled the picker
+    }
+    //TODO: do the image picker
+    //TODO: image cropper.
   }
 
   Widget newButton(String tooltip, IconData icon, VoidCallback onPressed) {
